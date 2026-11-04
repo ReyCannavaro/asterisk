@@ -47,10 +47,31 @@ Alur kerja standar untuk setiap skenario pekerjaan pada repositori SeeMBG:
 
 ---
 
-## 3. Workflow Ekstraksi Data SPPG (`ETL Pipeline`)
+---
 
-1. Jalankan script penarik bundle static chunk.
-2. Lakukan normalisasi teks (Title Case) dan sanitasi data string.
-3. Simpan ke file baseline JSON.
-4. Lakukan batch insert ke database PostgreSQL via Drizzle ORM.
-5. Jalankan geocoding bertahap untuk SPPG yang sudah aktif/pilot.
+## 4. Workflow Ekstraksi Desain & FigCraft Canvas
+
+```text
+[Terima Gambar Referensi / Screenshot dari User]
+        │
+        ▼
+[Buka Skill: figcraft-designer (SKILL.md + references)]
+        │
+        ▼
+[Fase 1: Dekonstruksi Visual (Grid, Spasi 4px/8px, Tipografi, Kontras)]
+        │
+        ▼
+[Fase 2: Pemetaan Token Semantik (Variables Color, Spacing, Radius)]
+        │
+        ▼
+[Fase 3: Penyusunan Auto-Layout Tree (Hug/Fill/Fixed, Padding, Gap)]
+        │
+        ▼
+[Fase 4: Deklarasi Komponen & Varian Status (Normal vs Showing Mode)]
+        │
+        ▼
+[Fase 5: Generasi FigCraft Node AST JSON / Blueprint Siap Pakai di Kanvas]
+```
+
+1. **Auto-Layout Wajib:** Semua elemen wajib dibungkus dalam Auto-Layout (`HORIZONTAL` atau `VERTICAL`) dengan aturan sizing (`HUG`, `FILL`, `FIXED`) yang jelas.
+2. **Anti-Slop:** Gunakan palet taktikal Asterisk (Obsidian, Amber, Emerald, Cyan) dan hindari gradien ungu tebal atau drop shadow kartun.

@@ -15,6 +15,7 @@ Gunakan tabel matriks di bawah ini untuk menentukan skill mana di folder `.agent
 | **Dokumentasi Library & Framework** | API reference Vite, React 19, Elysia, Drizzle ORM, Leaflet | `context7-mcp` | `.agents/skills/context7-mcp/SKILL.md` |
 | **Scraping Data & Testing Browser** | Ekstraksi web MBG Watch, pengujian interaksi peta, form check-in | `browser-use` | `.agents/skills/browser-use/SKILL.md` |
 | **Aset Visual & Branding** | Pembuatan logo, identity board, mockups, banner visual | `brandkit`<br>`imagegen-frontend-web` | `.agents/skills/brandkit/SKILL.md`<br>`.agents/skills/imagegen-frontend-web/SKILL.md` |
+| **Ekstraksi Desain & FigCraft Canvas** | Ekstrak gambar referensi, desain kanvas FigCraft, Auto-Layout tree, node JSON | `figcraft-designer` | `.agents/skills/figcraft-designer/SKILL.md` |
 | **Image-to-Code** | Menerjemahkan mockup gambar menjadi komponen React/Tailwind | `image-to-code` | `.agents/skills/image-to-code/SKILL.md` |
 | **Riset Data & Verifikasi Sumber** | Penelusuran data BGN, verifikasi berita MBG, validasi fakta | `valyu-best-practices` | `.agents/skills/valyu-best-practices/SKILL.md` |
 
