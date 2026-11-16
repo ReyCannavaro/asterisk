@@ -9,8 +9,8 @@ export function Dashboard() {
 
   return (
     <div className="bg-white rounded-[32px] w-full max-w-[1480px] shadow-2xl p-5 flex gap-6 overflow-hidden min-h-[920px]">
-      {/* Swiss Pod Sidebar */}
-      <Sidebar />
+      {/* Swiss Pod Sidebar with Dynamic Navigation & Showing Mask */}
+      <Sidebar isShowing={isShowing} />
 
       {/* Main Workspace Area */}
       <main className="flex-1 min-w-0 flex flex-col justify-start">

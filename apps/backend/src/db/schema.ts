@@ -7,6 +7,7 @@ export const users = pgTable("users", {
   passwordHash: text("password_hash").notNull(),
   fullName: text("full_name").notNull(),
   avatarUrl: text("avatar_url"),
+  isSuperadmin: boolean("is_superadmin").default(false).notNull(),
   isActive: boolean("is_active").default(true).notNull(),
   lastLoginAt: timestamp("last_login_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
@@ -17,16 +18,19 @@ export const users = pgTable("users", {
 
 // 2. ROLES
 export const roles = pgTable("roles", {
-  id: text("id").primaryKey(), // 'SUPERADMIN', 'LEAD_PM', 'DEV_INTERNAL', 'QA_INTERNAL', 'CLIENT_VIEWER'
+  id: text("id").primaryKey(), // 'SUPERADMIN', 'LEAD_PM', 'DEV_INTERNAL', 'QA_INTERNAL', 'CLIENT_VIEWER' or custom uuid
   name: text("name").notNull(),
   description: text("description"),
   isSystem: boolean("is_system").default(false).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
-// 3. PERMISSIONS
+// 3. PERMISSIONS (Granular Resource-Action Matrix)
 export const permissions = pgTable("permissions", {
-  id: text("id").primaryKey(), // 'vault:read', 'vault:decrypt', 'showing:create', 'task:edit'
-  category: text("category").notNull(),
+  id: text("id").primaryKey(), // e.g. 'clients:view', 'clients:create', 'vault:reveal'
+  resource: text("resource").notNull(), // 'clients', 'envs', 'vault', 'showing', 'tasks', 'audit', 'roles', 'users'
+  action: text("action").notNull(), // 'view', 'create', 'read', 'update', 'delete', 'reveal', 'qa_verify'
+  category: text("category").notNull(), // 'MANAGEMENT', 'SECURITY', 'DELIVERY', 'ADMIN'
   description: text("description"),
 });
 

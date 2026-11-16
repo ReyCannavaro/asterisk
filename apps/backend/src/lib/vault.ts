@@ -54,3 +54,11 @@ export class AsteriskVault {
 }
 
 export const vault = new AsteriskVault();
+
+export function encrypt(plaintext: string): string {
+  return vault.encrypt(plaintext);
+}
+
+export function decrypt(serialized: string): string {
+  return vault.decrypt(serialized);
+}

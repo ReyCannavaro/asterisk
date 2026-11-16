@@ -3,141 +3,207 @@ import {
   Home, 
   Activity, 
   CheckSquare, 
-  MessageSquare, 
+  Folder, 
+  Shield, 
+  Tv, 
+  Users, 
   Settings, 
   Plus, 
-  Folder 
+  Building2,
+  Lock
 } from "lucide-react";
+import type { SidebarConfig } from "@asterisk/types";
 
-export function Sidebar() {
-  const members = [
-    { name: "Zaid Myers", time: "08:06:28 for this week", color: "bg-blue-500", initials: "ZM" },
-    { name: "Rebecca Young", time: "12:41:07 for this week", color: "bg-pink-500", initials: "RY" },
-    { name: "Isaac Bowman", time: "01:56:22 for this week", color: "bg-emerald-500", initials: "IB" },
-    { name: "Vanessa Douglas", time: "16:35:59 for this week", color: "bg-purple-500", initials: "VD" },
-  ];
+interface SidebarProps {
+  config?: SidebarConfig;
+  isShowing?: boolean;
+}
+
+const DEFAULT_CONFIG: SidebarConfig = {
+  menuItems: [
+    { id: "overview", label: "Overview", href: "#overview", icon: "Home", badge: 12 },
+    { id: "clients", label: "Clients & Envs", href: "#clients", icon: "Folder", requiredPermission: "clients:view" },
+    { id: "vault", label: "Secrets Vault", href: "#vault", icon: "Shield", requiredPermission: "vault:view" },
+    { id: "showing", label: "Showing Sessions", href: "#showing", icon: "Tv", badge: "LIVE", requiredPermission: "showing:view" },
+    { id: "tasks", label: "Tasks & QA", href: "#tasks", icon: "CheckSquare", badge: 3, requiredPermission: "tasks:view" },
+    { id: "roles", label: "Dynamic Roles", href: "#roles", icon: "Users", requiredPermission: "roles:view" },
+    { id: "audit", label: "Audit Logs", href: "#audit", icon: "Activity", requiredPermission: "audit:view" },
+  ],
+  activeClients: [
+    { id: "c1", code: "ADARO", name: "PT Adaro Energy Tbk", showingAlias: "Client-A (Energy)", activeTasksCount: 4, healthStatus: "HEALTHY" },
+    { id: "c2", code: "MANDIRI", name: "PT Bank Mandiri (Persero) Tbk", showingAlias: "Client-B (Banking)", activeTasksCount: 7, healthStatus: "HEALTHY" },
+    { id: "c3", code: "TELKOMSEL", name: "PT Telkomsel Indonesia", showingAlias: "Client-C (Telco)", activeTasksCount: 2, healthStatus: "ATTENTION" },
+    { id: "c4", code: "INDOFOOD", name: "PT Indofood Sukses Makmur", showingAlias: "Client-D (FMCG)", activeTasksCount: 1, healthStatus: "HEALTHY" },
+  ],
+  currentUser: {
+    fullName: "Rey Cannavaro",
+    initials: "RC",
+    roleLabel: "Superadministrator",
+    isSuperadmin: true,
+    isOnline: true,
+  },
+};
+
+export function Sidebar({ config = DEFAULT_CONFIG, isShowing = false }: SidebarProps) {
+  const getIcon = (iconName: string) => {
+    switch (iconName) {
+      case "Home": return <Home className="w-4 h-4" />;
+      case "Folder": return <Folder className="w-4 h-4" />;
+      case "Shield": return <Shield className="w-4 h-4" />;
+      case "Tv":
+      case "Presentation": return <Tv className="w-4 h-4" />;
+      case "CheckSquare": return <CheckSquare className="w-4 h-4" />;
+      case "Users": return <Users className="w-4 h-4" />;
+      case "Activity": return <Activity className="w-4 h-4" />;
+      case "Settings": return <Settings className="w-4 h-4" />;
+      default: return <Folder className="w-4 h-4" />;
+    }
+  };
 
   return (
-    <aside className="w-[248px] bg-[#18191E] text-white rounded-[24px] p-5 flex flex-col justify-between shrink-0 select-none">
+    <aside className="w-[260px] bg-[#18191E] text-white rounded-[24px] p-5 flex flex-col justify-between shrink-0 select-none">
       <div>
         {/* Brand Header */}
-        <div className="flex items-center gap-3 mb-8">
-          <div className="w-8 h-8 relative flex items-center justify-center">
-            {/* Swiss Monolith Asterisk Icon */}
-            <div className="w-6 h-6 relative flex items-center justify-center">
-              <span className="text-[#FF6C22] text-2xl font-black leading-none select-none">*</span>
-              <div className="w-1.5 h-1.5 bg-white rounded-full absolute" />
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 relative flex items-center justify-center">
+              {/* Swiss Monolith Asterisk Icon */}
+              <div className="w-6 h-6 relative flex items-center justify-center">
+                <span className="text-[#FF6C22] text-2xl font-black leading-none select-none">*</span>
+                <div className="w-1.5 h-1.5 bg-white rounded-full absolute" />
+              </div>
+            </div>
+            <div>
+              <span className="font-bold text-lg tracking-tight block leading-tight">Asterisk</span>
+              <span className="text-[10px] text-gray-400 font-mono tracking-wider">DEV PORTAL</span>
             </div>
           </div>
-          <span className="font-bold text-lg tracking-tight">Asterisk</span>
+
+          {/* Showing Mode Pill in Sidebar Header */}
+          {isShowing && (
+            <span className="flex items-center gap-1 bg-[#FF6C22]/20 border border-[#FF6C22]/40 text-[#FF6C22] text-[9px] font-bold px-2 py-0.5 rounded-full">
+              <Lock className="w-2.5 h-2.5" />
+              MASKED
+            </span>
+          )}
         </div>
 
-        {/* Menu Section */}
+        {/* Dynamic Navigation Menu */}
         <div className="mb-6">
           <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block mb-3">
-            Menu
+            Navigation
           </span>
           <nav className="space-y-1">
-            <a href="#overview" className="flex items-center justify-between px-3 py-2 rounded-xl bg-[#25272F] text-white text-sm font-medium transition">
-              <div className="flex items-center gap-3">
-                <Home className="w-4 h-4 text-white" />
-                <span>Overview</span>
-              </div>
-              <span className="bg-[#FF6C22] text-white text-[11px] font-bold px-2 py-0.5 rounded-full">12</span>
-            </a>
-
-            <a href="#activity" className="flex items-center gap-3 px-3 py-2 rounded-xl text-gray-400 hover:text-gray-200 text-sm font-normal transition">
-              <Activity className="w-4 h-4" />
-              <span>Activity</span>
-            </a>
-
-            <a href="#tasks" className="flex items-center gap-3 px-3 py-2 rounded-xl text-gray-400 hover:text-gray-200 text-sm font-normal transition">
-              <CheckSquare className="w-4 h-4" />
-              <span>Tasks</span>
-            </a>
-
-            <a href="#chat" className="flex items-center justify-between px-3 py-2 rounded-xl text-gray-400 hover:text-gray-200 text-sm font-normal transition">
-              <div className="flex items-center gap-3">
-                <MessageSquare className="w-4 h-4" />
-                <span>Chat</span>
-              </div>
-              <span className="bg-[#FF6C22] text-white text-[11px] font-bold px-1.5 py-0.5 rounded-full">1</span>
-            </a>
-
-            <a href="#settings" className="flex items-center gap-3 px-3 py-2 rounded-xl text-gray-400 hover:text-gray-200 text-sm font-normal transition">
-              <Settings className="w-4 h-4" />
-              <span>Settings</span>
-            </a>
+            {config.menuItems.map((item, idx) => {
+              const isOverview = item.id === "overview";
+              return (
+                <a
+                  key={item.id}
+                  href={item.href}
+                  className={`flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium transition ${
+                    isOverview
+                      ? "bg-[#25272F] text-white shadow-xs"
+                      : "text-gray-400 hover:text-gray-200 hover:bg-white/5"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className={isOverview ? "text-[#FF6C22]" : "text-gray-400"}>
+                      {getIcon(item.icon)}
+                    </span>
+                    <span>{item.label}</span>
+                  </div>
+                  {item.badge && (
+                    <span
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                        item.badge === "LIVE"
+                          ? "bg-red-500 text-white animate-pulse"
+                          : isOverview
+                          ? "bg-[#FF6C22] text-white"
+                          : "bg-gray-800 text-gray-300"
+                      }`}
+                    >
+                      {item.badge}
+                    </span>
+                  )}
+                </a>
+              );
+            })}
           </nav>
         </div>
 
-        {/* Projects Section */}
+        {/* Dynamic Client Tenants Section (Project-Scoped Access) */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Projects</span>
-            <button className="text-gray-400 hover:text-white transition">
-              <Plus className="w-3.5 h-3.5" />
-            </button>
+            <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
+              Clients ({config.activeClients.length})
+            </span>
+            {config.currentUser.isSuperadmin && (
+              <button 
+                title="Add Client"
+                className="text-gray-400 hover:text-white transition p-1 hover:bg-white/10 rounded-md"
+              >
+                <Plus className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
-          <div className="space-y-1">
-            <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-white/5 text-white text-sm font-medium">
-              <div className="flex items-center gap-3">
-                <Folder className="w-4 h-4 text-[#FF6C22]" />
-                <span>Publications</span>
-              </div>
-              <span className="bg-[#FF6C22] text-white text-[11px] font-bold px-2 py-0.5 rounded-full">4</span>
-            </div>
-            <div className="flex items-center gap-3 px-3 py-2 text-gray-400 text-sm">
-              <Folder className="w-4 h-4 text-gray-500" />
-              <span>Planning</span>
-            </div>
-            <div className="flex items-center gap-3 px-3 py-2 text-gray-400 text-sm">
-              <Folder className="w-4 h-4 text-gray-500" />
-              <span>Design Internal</span>
-            </div>
-            <div className="flex items-center gap-3 px-3 py-2 text-gray-400 text-sm">
-              <Folder className="w-4 h-4 text-gray-500" />
-              <span>Marketing</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Members Section */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Members</span>
-            <button className="text-gray-400 hover:text-white transition">
-              <Plus className="w-3.5 h-3.5" />
-            </button>
-          </div>
-          <div className="space-y-3">
-            {members.map((m, idx) => (
-              <div key={idx} className="flex items-center gap-3 px-1">
-                <div className={`w-7 h-7 rounded-full ${m.color} text-white text-[11px] font-bold flex items-center justify-center shrink-0`}>
-                  {m.initials}
-                </div>
-                <div className="truncate">
-                  <div className="text-xs font-semibold text-gray-200 truncate">{m.name}</div>
-                  <div className="text-[10px] text-gray-400 truncate">{m.time}</div>
-                </div>
-              </div>
-            ))}
+          <div className="space-y-1 max-h-[180px] overflow-y-auto pr-1">
+            {config.activeClients.map((client) => {
+              const displayName = isShowing && client.showingAlias ? client.showingAlias : client.name;
+              return (
+                <a
+                  key={client.id}
+                  href={`#client-${client.code.toLowerCase()}`}
+                  className="flex items-center justify-between px-3 py-2 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 text-xs font-medium transition group"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-5 h-5 rounded-md bg-[#25272F] group-hover:bg-[#FF6C22]/20 text-[#FF6C22] flex items-center justify-center shrink-0 text-[10px] font-mono font-bold">
+                      {client.code.slice(0, 2)}
+                    </div>
+                    <span className="truncate">{displayName}</span>
+                  </div>
+                  <span className="text-[10px] font-mono text-gray-500 group-hover:text-gray-300 shrink-0 ml-1">
+                    {client.activeTasksCount}
+                  </span>
+                </a>
+              );
+            })}
           </div>
         </div>
       </div>
 
-      {/* Pinned Bottom User Card */}
-      <div className="mt-6 pt-4 border-t border-gray-800 flex items-center gap-3">
-        <div className="relative">
-          <div className="w-8 h-8 rounded-full bg-orange-500 text-white text-xs font-bold flex items-center justify-center">
-            KM
+      {/* Dynamic Pinned Bottom User Profile Card */}
+      <div className="mt-4 pt-4 border-t border-gray-800/80 flex items-center justify-between">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="relative shrink-0">
+            <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#FF6C22] to-amber-500 text-white text-xs font-bold flex items-center justify-center shadow-sm">
+              {config.currentUser.initials}
+            </div>
+            {config.currentUser.isOnline && (
+              <div 
+                title="Online"
+                className="w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-[#18191E] absolute -bottom-0.5 -right-0.5" 
+              />
+            )}
           </div>
-          <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-[#18191E] absolute -bottom-0.5 -right-0.5" />
+          <div className="truncate">
+            <div className="text-xs font-semibold text-white truncate flex items-center gap-1.5">
+              <span>{config.currentUser.fullName}</span>
+            </div>
+            <div className="text-[10px] text-gray-400 truncate flex items-center gap-1">
+              {config.currentUser.isSuperadmin && (
+                <span className="text-[#FF6C22] font-semibold">★</span>
+              )}
+              <span>{config.currentUser.roleLabel}</span>
+            </div>
+          </div>
         </div>
-        <div className="truncate">
-          <div className="text-xs font-semibold text-white">Katrina Malone</div>
-          <div className="text-[10px] text-gray-400">Product Designer</div>
-        </div>
+
+        <button 
+          title="Account Settings"
+          className="text-gray-500 hover:text-gray-300 p-1.5 hover:bg-white/5 rounded-lg transition"
+        >
+          <Settings className="w-4 h-4" />
+        </button>
       </div>
     </aside>
   );

@@ -4,6 +4,7 @@ import { clientRoutes } from "./routes/clients";
 import { vaultRoutes } from "./routes/vault";
 import { showingRoutes } from "./routes/showing";
 import { taskRoutes } from "./routes/tasks";
+import { roleRoutes } from "./routes/roles";
 
 const port = Number(process.env.PORT) || 3000;
 
@@ -24,6 +25,7 @@ export const app = new Elysia()
   .use(vaultRoutes)
   .use(showingRoutes)
   .use(taskRoutes)
+  .use(roleRoutes)
   .listen(port);
 
 console.log(`🎻 Asterisk Backend Symphony playing at http://localhost:${port}`);
