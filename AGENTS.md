@@ -1,6 +1,6 @@
 # AGENTS: Asterisk Monorepo Master Router
 
-> **Proyek**: Asterisk (`*`) — Platform Manajemen Kredensial Multi-Klien, Sesi Showing Klien HRIS, dan Showing Mode Anti-Leak  
+> **Proyek**: Asterisk (`*`) — Internal Developer Portal, Multi-Client Secrets Vault, Showing Sessions & Feedback Tracker, dan Showing Mode Anti-Leak  
 > **Lead Project Manager**: Rey Cannavaro  
 > **Arsitektur**: Monorepo Moonrepo (Astro 5 SSR, React 19, Tailwind CSS 4, Elysia.js Bun, Drizzle ORM PostgreSQL, Eden Treaty)
 
@@ -23,7 +23,7 @@ Setiap kali prompt pengguna masuk, AI wajib menganalisis domain pekerjaan dan me
 | **FigCraft Canvas, Logo, Brandmark, Token Visual** | **ARTIST** | [`.agents/orchestra/ARTIST.md`](file:///c:/Users/Rey%20Cannavaro/asterisk/.agents/orchestra/ARTIST.md) | `figcraft-designer`<br>`high-end-visual-design` |
 | **Backend API, Elysia, Bun, Drizzle ORM, PostgreSQL** | **CELLIST** | [`.agents/orchestra/CELLIST.md`](file:///c:/Users/Rey%20Cannavaro/asterisk/.agents/orchestra/CELLIST.md) | `full-output-enforcement`<br>`context7-mcp` |
 | **Security, Vault, AES-256-GCM, Showing Mode Masking** | **PERCUSSIONIST** | [`.agents/orchestra/PERCUSSIONIST.md`](file:///c:/Users/Rey%20Cannavaro/asterisk/.agents/orchestra/PERCUSSIONIST.md) | `.agents/rules/user-verification.md` |
-| **Regulasi HRIS, BPJS, PPh 21 TER, Lembur Klien** | **FLUTIST** | [`.agents/orchestra/FLUTIST.md`](file:///c:/Users/Rey%20Cannavaro/asterisk/.agents/orchestra/FLUTIST.md) | `context7-mcp` |
+| **Analisis Kebutuhan Sistem, Spesifikasi Fitur, Acceptance Criteria** | **FLUTIST** | [`.agents/orchestra/FLUTIST.md`](file:///c:/Users/Rey%20Cannavaro/asterisk/.agents/orchestra/FLUTIST.md) | `context7-mcp` |
 | **Integrasi End-to-End, Eden Treaty Type Client** | **HARPIST** | [`.agents/orchestra/HARPIST.md`](file:///c:/Users/Rey%20Cannavaro/asterisk/.agents/orchestra/HARPIST.md) | `full-output-enforcement` |
 | **Code Review, Linter, Anti-Slop, Strict Typing** | **TUNER** | [`.agents/orchestra/TUNER.md`](file:///c:/Users/Rey%20Cannavaro/asterisk/.agents/orchestra/TUNER.md) | `react-best-practices` |
 | **QA Test, Showing Leak Test, Multi-tenant Isolation** | **AUDITOR** | [`.agents/orchestra/AUDITOR.md`](file:///c:/Users/Rey%20Cannavaro/asterisk/.agents/orchestra/AUDITOR.md) | `browser-use` |

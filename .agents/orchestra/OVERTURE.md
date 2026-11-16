@@ -6,7 +6,7 @@
 
 ## 🎼 1. Kisah & Visi Simfoni Asterisk
 
-Sebagai Lead Project Manager yang menangani implementasi sistem HRIS (*Human Resource Information System*) lintas korporasi raksasa (Adaro Energy, Bank Mandiri, Telkomsel, Indofood), **Rey Cannavaro** menghadapi dilema klasik perusahaan vendor software:
+Sebagai Lead Project Manager yang mengelola implementasi berbagai sistem software dan aplikasi lintas korporasi klien vendor (Adaro Energy, Bank Mandiri, Telkomsel, Indofood), **Rey Cannavaro** menghadapi dilema klasik perusahaan teknologi:
 1. **Kebocoran Rahasia Klien**: Kredensial database, port staging, dan token generator sering tersebar tidak aman di obrolan chat atau dokumen lokal.
 2. **Kepanikan Live Showing**: Saat presentasi demo berkala (*weekly showing*) melalui *screenshare*, PM dan QA selalu was-was jika password asli atau host server privat tak sengaja tersorot di layar klien.
 3. **Kekacauan Spreadsheet Feedback**: Catatan revisi klien dari sesi demo sering bertebaran di puluhan Google Sheets yang terputus dari antrean kerja para insinyur.
@@ -33,7 +33,7 @@ Setiap rahasia teknis (password DB, SSH keys, generator secrets) wajib dilindung
 Ketika *Showing Mode* aktif (`Ctrl+Shift+S`), seluruh antarmuka dan transmisi data secara instan mengenakan topeng pelindung: kredensial berubah menjadi `••••••••••••`, host produksi di-masking, dan nama sensitif disamarkan. Klien hanya melihat keindahan fungsi tanpa pernah melihat rahasia infrastruktur.
 
 ### Motif 3: The Multi-Client Polyphony (Harmoni Multi-Tenant)
-Setiap klien HRIS adalah suara instrumen yang berbeda. Data, sesi demo, dan matriks regulasi (rumus PPh 21 TER, BPJS, lembur) terisolasi secara ketat. Satu nada dari Klien A tidak boleh bocor atau mengaburkan partitur Klien B.
+Setiap tenant/klien vendor adalah suara instrumen yang berbeda. Environment dev/staging/prod, kredensial vault, sesi demo, dan log feedback terisolasi secara ketat. Satu nada dari Klien A tidak boleh bocor atau mengaburkan partitur Klien B.
 
 ### Motif 4: The Swiss Monolith (Elegan & Anti-Slop)
 Antarmuka Asterisk menolak tren murahan AI: tanpa gradien ungu neon, tanpa drop shadow kartun. Asterisk bernapas dalam disiplin *Swiss Modernism*: Carbon Obsidian (`#06080D`), Charcoal (`#18191E`), Slate (`#25272D`), Floating White Shell, dan aksen Tangerine Orange (`#FF6C22`) dengan layout super-ellipse halus (*TeamUnity Style*).
@@ -49,7 +49,7 @@ Antarmuka Asterisk menolak tren murahan AI: tanpa gradien ungu neon, tanpa drop 
    - `ARTIST`: Mengarahkan kanvas FigCraft dan tata panggung visual.
    - `CELLIST`: Menjaga kekokohan basis data 13 tabel PostgreSQL dan API Elysia.
    - `PERCUSSIONIST`: Membentengi keamanan vault dan filter Showing Mode.
-   - `FLUTIST`: Menjamin akurasi kalkulasi rumit regulasi HRIS Indonesia.
+   - `FLUTIST`: Menjamin ketajaman analisis kebutuhan spesifikasi fitur dan dekonstruksi feedback klien.
    - `HARPIST`: Menjembatani frontend dan backend via Eden Treaty tanpa type error.
    - `TUNER`: Menyetem kode agar bersih dari lint error dan kode malas.
    - `AUDITOR`: Menantang akustik sistem dengan uji kebocoran data dan batas tenant.

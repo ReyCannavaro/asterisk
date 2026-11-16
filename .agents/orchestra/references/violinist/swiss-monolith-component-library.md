@@ -26,7 +26,7 @@ Panduan spesifikasi komponen UI Asterisk berbasis **Swiss Modernism (Anti-Slop)*
   --color-text-secondary:  #6B7280;  /* Cool Gray Secondary */
   --color-text-muted:      #9CA3AF;  /* Muted Placeholder */
 
-  /* Pastel Tag System (HRIS Modules) */
+  /* Pastel Tag System (Feature Module Tags) */
   --tag-payroll-bg:        #FDE8E4;
   --tag-payroll-text:      #E15B46;
 

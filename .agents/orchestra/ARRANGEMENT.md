@@ -12,7 +12,7 @@ Gunakan tabel matriks di bawah ini untuk menentukan instrumen orkestra di [`.age
 | **Kanvas FigCraft & Branding** | Gambar referensi, Auto-Layout, frame FigCraft, logo Swiss Monolith, token | **ARTIST** (`ARTIST.md`) | `figcraft-designer`<br>`high-end-visual-design`<br>`brandkit` |
 | **Backend API & Database** | Endpoint Elysia, query DB, skema Drizzle ORM, 13 tabel, migrasi, typebox | **CELLIST** (`CELLIST.md`) | `full-output-enforcement`<br>`context7-mcp` |
 | **Keamanan & Showing Mode** | Vault credential, AES-256-GCM, masking password, anti-leak demo, RBAC, audit log | **PERCUSSIONIST** (`PERCUSSIONIST.md`) | `rules/user-verification` |
-| **Regulasi HRIS & Kalkulasi** | BPJS TK/Kes, PPh 21 TER 2024, lembur Depnaker, variasi klien Adaro/Mandiri | **FLUTIST** (`FLUTIST.md`) | `context7-mcp` |
+| **Analisis Kebutuhan Sistem & Spesifikasi Fitur** | Analisis requirement, dekonstruksi feedback demo, user stories, acceptance criteria | **FLUTIST** (`FLUTIST.md`) | `context7-mcp` |
 | **Integrasi End-to-End** | Eden Treaty, type sync frontend-backend, fetch client, optimistic kanban | **HARPIST** (`HARPIST.md`) | `full-output-enforcement`<br>`context7-mcp` |
 | **Project Management & Sesi** | Scope PRD, sprint ticket, triage Showing Feedback, jadwal demo, pembagian tugas | **BATON** (`BATON.md`) | `automation` |
 | **Code Review & Anti-Slop** | Linter, typecheck, verifikasi boundary modul, anti-slop check, refactoring | **TUNER** (`TUNER.md`) | `react-best-practices`<br>`full-output-enforcement` |
@@ -23,7 +23,7 @@ Gunakan tabel matriks di bawah ini untuk menentukan instrumen orkestra di [`.age
 ## 2. Aturan Harmoni Simfoni (*Ensemble Chaining Rules*)
 
 1. **Ketika Mengerjakan Fitur Baru secara Penuh (Full Feature):**  
-   Alur bermain: **BATON** (definisi scope) ➔ **FLUTIST** (spesifikasi aturan HRIS) ➔ **CELLIST** (skema DB & API) ➔ **VIOLINIST** (antarmuka UI) ➔ **HARPIST** (koneksi Eden Treaty) ➔ **PERCUSSIONIST** (sensor Showing Mode) ➔ **TUNER** (QC code review) ➔ **AUDITOR** (leak test).
+   Alur bermain: **BATON** (definisi scope) ➔ **FLUTIST** (spesifikasi kebutuhan teknis) ➔ **CELLIST** (skema DB & API) ➔ **VIOLINIST** (antarmuka UI) ➔ **HARPIST** (koneksi Eden Treaty) ➔ **PERCUSSIONIST** (sensor Showing Mode) ➔ **TUNER** (QC code review) ➔ **AUDITOR** (leak test).
 2. **Ketika Mengerjakan Tampilan Antarmuka Baru:**  
    Wajib mengombinasikan **ARTIST** (cek kanvas FigCraft) + **VIOLINIST** (tulis komponen) + skill `design-taste-frontend` + `responsive-craft`.
 3. **Ketika Mengubah Modul Credential Vault:**  

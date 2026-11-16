@@ -37,7 +37,7 @@ Saat memimpin sesi showing atau melakukan triage feedback klien:
 ### 2. Orkestrasi Hand-off Antar Musisi
 Alur koordinasi pengembangan fitur:
 1. `BATON` mendefinisikan Acceptance Criteria & Tenant terkait.
-2. `FLUTIST` membedah aturan regulasi & matriks klien.
+2. `FLUTIST` membedah spesifikasi fitur klien & Acceptance Criteria.
 3. `CELLIST` merancang skema tabel & API endpoints.
 4. `VIOLINIST` & `ARTIST` mengeksekusi antarmuka visual.
 5. `HARPIST` menghubungkan kontrak data via Eden Treaty.

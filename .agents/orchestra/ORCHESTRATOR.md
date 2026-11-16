@@ -45,7 +45,7 @@ Menganalisis prompt pengguna untuk menentukan domain:
 * Apakah ini tugas **Showing Mode & Keamanan Vault**? ➔ `PERCUSSIONIST`
 * Apakah ini tugas **Desain Kanvas / UI Visual**? ➔ `ARTIST` & `VIOLINIST`
 * Apakah ini tugas **API Elysia / Skema Drizzle**? ➔ `CELLIST`
-* Apakah ini tugas **Logika Regulasi HRIS (BPJS/Pajak)**? ➔ `FLUTIST`
+* Apakah ini tugas **Spesifikasi Fitur / Kebutuhan Klien**? ➔ `FLUTIST`
 * Apakah ini tugas **Integrasi Kontrak Data**? ➔ `HARPIST`
 * Apakah ini tugas **Manajemen Scope & Feedback Klien**? ➔ `BATON`
 
