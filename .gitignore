@@ -1,0 +1,36 @@
+# Moonrepo
+.moon/cache
+.moon/docker
+
+# Bun / Node
+node_modules/
+bun.lockb
+
+# Build Outputs
+dist/
+build/
+.astro/
+
+# Environment Variables & Secrets
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE & OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

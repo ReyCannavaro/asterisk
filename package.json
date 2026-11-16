@@ -1,0 +1,19 @@
+{
+  "name": "asterisk-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:backend": "moon run backend:dev",
+    "dev:frontend": "moon run frontend:dev",
+    "build:all": "moon run :build",
+    "typecheck:all": "moon run :typecheck"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2"
+  }
+}
