@@ -46,3 +46,30 @@ Setiap kali prompt pengguna masuk, AI wajib menganalisis domain pekerjaan dan me
 4. **Kepatuhan Kontrol Server (User Verification Directive)**:
    - **DILARANG menjalankan background dev server (`moon run :dev`, `bun dev`, `npm start`) secara otonom**.
    - Server proses dikendalikan sepenuhnya oleh pengguna di terminalnya sendiri. Agent hanya membuat kode, memverifikasi linter/typecheck, dan mempersiapkan build.
+
+
+<!-- BEGIN AWS Agent Toolkit rules -->
+# AWS Guidance for the new AWS experience
+
+This user has signed up for the new AWS experience. This experience lets you sign into AWS using a social provider and requires the following additional context.
+
+Where this guidance conflicts with the project's own instructions, the project's instructions take precedence.
+
+## Context
+
+### Terminology:
+- Say "project" instead of "account" — a project contains an AWS account and settings for sharing with other collaborators
+- Say "team member" instead of "IAM user" — users are invited by email, not created or federated in IAM
+- Say "AWS Settings" when referring to management tasks at [settings.aws.com](https://settings.aws.com/) (project management, billing, team members, spend limits). Users view their actual AWS resources in the AWS Management Console.
+- Say "selected Region" when referring to the user's Region — not "home Region"
+- The user has a managed IAM experience. This includes managed service control policies (SCP) and resource control policies (RCP) that govern the use of AWS.
+
+### Constraints:
+- All projects share a single AWS Region (`ap-southeast-2`). Resources cannot be created in other Regions.
+- MUST create all Regional resources in the project's assigned Region (`ap-southeast-2`).
+- The user sets up billing, creates spend limits, and retrieves and pays invoices in AWS Settings.
+- For any AWS task or question, use skills and AWS MCP tools when available.
+
+### Help level:
+- Default help level is HIGH: Explain what each step does, suggest best practices, and flag security/cost considerations.
+<!-- END AWS Agent Toolkit rules -->
