@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: asterisk-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword
+      POSTGRES_DB: asterisk
+    ports:
+      - "5432:5432"
+    volumes:
+      - asterisk_pgdata:/var/lib/postgresql/data
+
+volumes:
+  asterisk_pgdata:
