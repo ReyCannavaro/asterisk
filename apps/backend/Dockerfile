@@ -13,7 +13,7 @@ COPY packages/config/package.json ./packages/config/
 COPY apps/backend/package.json ./apps/backend/
 
 # Install workspace dependencies
-RUN bun install --frozen-lockfile
+RUN bun install
 
 # Copy source trees
 COPY packages/types ./packages/types
