@@ -9,7 +9,6 @@ import {
   Users, 
   Settings, 
   Plus, 
-  Building2,
   Lock
 } from "lucide-react";
 import type { SidebarConfig } from "@asterisk/types";
