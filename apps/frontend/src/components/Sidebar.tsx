@@ -16,6 +16,10 @@ import type { SidebarConfig } from "@asterisk/types";
 interface SidebarProps {
   config?: SidebarConfig;
   isShowing?: boolean;
+  activeView?: string;
+  onSelectView?: (viewId: string) => void;
+  onSelectClient?: (clientId: string) => void;
+  onOpenCreateClient?: () => void;
 }
 
 const DEFAULT_CONFIG: SidebarConfig = {
@@ -29,10 +33,10 @@ const DEFAULT_CONFIG: SidebarConfig = {
     { id: "audit", label: "Audit Logs", href: "#audit", icon: "Activity", requiredPermission: "audit:view" },
   ],
   activeClients: [
-    { id: "c1", code: "ADARO", name: "PT Adaro Energy Tbk", showingAlias: "Client-A (Energy)", activeTasksCount: 4, healthStatus: "HEALTHY" },
-    { id: "c2", code: "MANDIRI", name: "PT Bank Mandiri (Persero) Tbk", showingAlias: "Client-B (Banking)", activeTasksCount: 7, healthStatus: "HEALTHY" },
-    { id: "c3", code: "TELKOMSEL", name: "PT Telkomsel Indonesia", showingAlias: "Client-C (Telco)", activeTasksCount: 2, healthStatus: "ATTENTION" },
-    { id: "c4", code: "INDOFOOD", name: "PT Indofood Sukses Makmur", showingAlias: "Client-D (FMCG)", activeTasksCount: 1, healthStatus: "HEALTHY" },
+    { id: "client-adaro", code: "ADARO", name: "PT Adaro Energy Indonesia Tbk", showingAlias: "Client-A (Energy)", activeTasksCount: 4, healthStatus: "HEALTHY" },
+    { id: "client-mandiri", code: "MANDIRI", name: "PT Bank Mandiri (Persero) Tbk", showingAlias: "Client-B (Banking)", activeTasksCount: 7, healthStatus: "HEALTHY" },
+    { id: "client-telkomsel", code: "TELKOMSEL", name: "PT Telekomunikasi Selular", showingAlias: "Client-C (Telco)", activeTasksCount: 2, healthStatus: "ATTENTION" },
+    { id: "client-indofood", code: "INDOFOOD", name: "PT Indofood Sukses Makmur Tbk", showingAlias: "Client-D (FMCG)", activeTasksCount: 1, healthStatus: "HEALTHY" },
   ],
   currentUser: {
     fullName: "Rey Cannavaro",
@@ -43,7 +47,14 @@ const DEFAULT_CONFIG: SidebarConfig = {
   },
 };
 
-export function Sidebar({ config = DEFAULT_CONFIG, isShowing = false }: SidebarProps) {
+export function Sidebar({ 
+  config = DEFAULT_CONFIG, 
+  isShowing = false,
+  activeView = "overview",
+  onSelectView,
+  onSelectClient,
+  onOpenCreateClient
+}: SidebarProps) {
   const getIcon = (iconName: string) => {
     switch (iconName) {
       case "Home": return <Home className="w-4 h-4" />;
@@ -93,20 +104,21 @@ export function Sidebar({ config = DEFAULT_CONFIG, isShowing = false }: SidebarP
             Navigation
           </span>
           <nav className="space-y-1">
-            {config.menuItems.map((item, idx) => {
-              const isOverview = item.id === "overview";
+            {config.menuItems.map((item) => {
+              const isSelected = activeView === item.id;
               return (
-                <a
+                <button
                   key={item.id}
-                  href={item.href}
-                  className={`flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium transition ${
-                    isOverview
+                  type="button"
+                  onClick={() => onSelectView?.(item.id)}
+                  className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium transition ${
+                    isSelected
                       ? "bg-[#25272F] text-white shadow-xs"
                       : "text-gray-400 hover:text-gray-200 hover:bg-white/5"
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <span className={isOverview ? "text-[#FF6C22]" : "text-gray-400"}>
+                    <span className={isSelected ? "text-[#FF6C22]" : "text-gray-400"}>
                       {getIcon(item.icon)}
                     </span>
                     <span>{item.label}</span>
@@ -116,7 +128,7 @@ export function Sidebar({ config = DEFAULT_CONFIG, isShowing = false }: SidebarP
                       className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                         item.badge === "LIVE"
                           ? "bg-red-500 text-white animate-pulse"
-                          : isOverview
+                          : isSelected
                           ? "bg-[#FF6C22] text-white"
                           : "bg-gray-800 text-gray-300"
                       }`}
@@ -124,7 +136,7 @@ export function Sidebar({ config = DEFAULT_CONFIG, isShowing = false }: SidebarP
                       {item.badge}
                     </span>
                   )}
-                </a>
+                </button>
               );
             })}
           </nav>
@@ -138,7 +150,9 @@ export function Sidebar({ config = DEFAULT_CONFIG, isShowing = false }: SidebarP
             </span>
             {config.currentUser.isSuperadmin && (
               <button 
-                title="Add Client"
+                type="button"
+                onClick={onOpenCreateClient}
+                title="Register New Client"
                 className="text-gray-400 hover:text-white transition p-1 hover:bg-white/10 rounded-md"
               >
                 <Plus className="w-3.5 h-3.5" />
@@ -149,10 +163,11 @@ export function Sidebar({ config = DEFAULT_CONFIG, isShowing = false }: SidebarP
             {config.activeClients.map((client) => {
               const displayName = isShowing && client.showingAlias ? client.showingAlias : client.name;
               return (
-                <a
+                <button
                   key={client.id}
-                  href={`#client-${client.code.toLowerCase()}`}
-                  className="flex items-center justify-between px-3 py-2 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 text-xs font-medium transition group"
+                  type="button"
+                  onClick={() => onSelectClient?.(client.id)}
+                  className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 text-xs font-medium transition group"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
                     <div className="w-5 h-5 rounded-md bg-[#25272F] group-hover:bg-[#FF6C22]/20 text-[#FF6C22] flex items-center justify-center shrink-0 text-[10px] font-mono font-bold">
@@ -163,7 +178,7 @@ export function Sidebar({ config = DEFAULT_CONFIG, isShowing = false }: SidebarP
                   <span className="text-[10px] font-mono text-gray-500 group-hover:text-gray-300 shrink-0 ml-1">
                     {client.activeTasksCount}
                   </span>
-                </a>
+                </button>
               );
             })}
           </div>
@@ -178,28 +193,28 @@ export function Sidebar({ config = DEFAULT_CONFIG, isShowing = false }: SidebarP
               {config.currentUser.initials}
             </div>
             {config.currentUser.isOnline && (
-              <div 
-                title="Online"
-                className="w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-[#18191E] absolute -bottom-0.5 -right-0.5" 
-              />
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-[#18191E] absolute bottom-0 right-0" />
             )}
           </div>
-          <div className="truncate">
-            <div className="text-xs font-semibold text-white truncate flex items-center gap-1.5">
-              <span>{config.currentUser.fullName}</span>
-            </div>
-            <div className="text-[10px] text-gray-400 truncate flex items-center gap-1">
+          <div className="min-w-0">
+            <span className="font-bold text-xs truncate block text-gray-100">
+              {config.currentUser.fullName}
+            </span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] text-gray-400 font-mono block truncate">
+                {config.currentUser.roleLabel}
+              </span>
               {config.currentUser.isSuperadmin && (
-                <span className="text-[#FF6C22] font-semibold">★</span>
+                <span className="bg-[#FF6C22]/20 text-[#FF6C22] text-[9px] font-bold px-1.5 py-0.2 rounded font-mono">
+                  ROOT
+                </span>
               )}
-              <span>{config.currentUser.roleLabel}</span>
             </div>
           </div>
         </div>
-
         <button 
-          title="Account Settings"
-          className="text-gray-500 hover:text-gray-300 p-1.5 hover:bg-white/5 rounded-lg transition"
+          title="Account Preferences"
+          className="text-gray-400 hover:text-white transition p-1.5 hover:bg-white/5 rounded-lg"
         >
           <Settings className="w-4 h-4" />
         </button>
