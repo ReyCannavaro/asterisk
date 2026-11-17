@@ -189,6 +189,15 @@ export interface ShowingSession {
   createdAt: Date;
 }
 
+export interface ShowingSessionWithContext extends ShowingSession {
+  clientName?: string;
+  clientCode?: string;
+  clientShowingAlias?: string;
+  conductedByName?: string;
+  feedbacksCount?: number;
+  convertedTasksCount?: number;
+}
+
 export type FeedbackCategory = "BUG_CRITICAL" | "SHOWING_ENHANCEMENT" | "CLIENT_CUSTOM_REQ";
 export type FeedbackSeverity = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
 export type FeedbackStatus = "LOGGED" | "CONVERTED_TO_TASK" | "RESOLVED";
