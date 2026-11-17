@@ -61,6 +61,16 @@ export interface User {
   updatedAt: Date;
 }
 
+export interface UserWithRoles extends User {
+  assignedRoles: Array<{
+    id: string;
+    roleId: string;
+    roleName: string;
+    clientId: string | null;
+    clientName?: string;
+  }>;
+}
+
 export interface UserRoleAssignment {
   id: string;
   userId: string;
@@ -173,6 +183,7 @@ export interface AuditLog {
   wasShowingModeActive: boolean;
   metadata?: any;
   createdAt: Date;
+  userFullName?: string;
 }
 
 // 5. Showing Sessions & Feedback Pipeline

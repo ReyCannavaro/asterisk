@@ -5,6 +5,7 @@ import { KanbanBoard } from "./KanbanBoard";
 import { ClientsManager } from "./ClientsManager";
 import { VaultManager } from "./VaultManager";
 import { ShowingManager } from "./ShowingManager";
+import { RolesAuditManager } from "./RolesAuditManager";
 import { CreateClientModal } from "./CreateClientModal";
 import { useShowingMode } from "../lib/showing-store";
 import { api } from "../lib/eden";
@@ -78,6 +79,11 @@ export function Dashboard() {
             <ShowingManager
               isShowing={isShowing}
               onNavigateToTasks={() => setActiveView("tasks")}
+            />
+          ) : activeView === "roles" || activeView === "audit" ? (
+            <RolesAuditManager
+              isShowing={isShowing}
+              initialTab={activeView === "audit" ? "audit" : "roles"}
             />
           ) : (
             <KanbanBoard isShowing={isShowing} />
