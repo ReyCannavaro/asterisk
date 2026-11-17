@@ -1,337 +1,405 @@
-import React from "react";
-import { Calendar, MessageSquare, Paperclip, Move } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { 
+  Calendar, 
+  MessageSquare, 
+  Plus, 
+  ArrowLeft, 
+  ArrowRight, 
+  CheckCircle2, 
+  Clock, 
+  Filter, 
+  Search, 
+  RefreshCw, 
+  Zap, 
+  Building2, 
+  CheckSquare,
+  ShieldAlert
+} from "lucide-react";
+import { api } from "../lib/eden";
+import { TaskDetailModal } from "./TaskDetailModal";
+import { CreateTaskModal } from "./CreateTaskModal";
+import type { TaskStatus, TaskModuleTag } from "@asterisk/types";
 
 interface KanbanProps {
   isShowing: boolean;
 }
 
+interface KanbanTaskItem {
+  id: string;
+  clientId: string;
+  feedbackId?: string | null;
+  title: string;
+  description?: string | null;
+  moduleTag: TaskModuleTag;
+  status: TaskStatus;
+  assignedTo?: string | null;
+  assignedToName?: string;
+  assignedToAvatar?: string | null;
+  dueDate?: string | null;
+  positionOrder: number;
+  createdAt: string;
+  updatedAt: string;
+  clientCode?: string;
+  clientName?: string;
+  clientShowingAlias?: string;
+  sourceFeedbackCategory?: string | null;
+  sourceFeedbackSeverity?: string | null;
+  activitiesCount?: number;
+}
+
+const COLUMNS: { id: TaskStatus; label: string; headerColor: string; dotColor: string }[] = [
+  { id: "TODO", label: "To Do", headerColor: "text-[#18191E]", dotColor: "bg-gray-400" },
+  { id: "IN_PROGRESS", label: "In Progress", headerColor: "text-sky-600", dotColor: "bg-sky-500 animate-pulse" },
+  { id: "REVIEW_QA", label: "Review QA", headerColor: "text-amber-600", dotColor: "bg-amber-500" },
+  { id: "COMPLETE", label: "Complete", headerColor: "text-emerald-600", dotColor: "bg-emerald-500" },
+];
+
 export function KanbanBoard({ isShowing }: KanbanProps) {
+  const [tasks, setTasks] = useState<KanbanTaskItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedClientFilter, setSelectedClientFilter] = useState("ALL");
+  const [selectedModuleFilter, setSelectedModuleFilter] = useState("ALL");
+  
+  // Modals state
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [createDefaultStatus, setCreateDefaultStatus] = useState<TaskStatus>("TODO");
+
+  const loadTasks = async () => {
+    setIsLoading(true);
+    try {
+      const response = await api.api.tasks.get({
+        headers: { "x-asterisk-showing-mode": String(isShowing) },
+      });
+
+      if (response.data && Array.isArray(response.data)) {
+        setTasks(response.data as unknown as KanbanTaskItem[]);
+      }
+    } catch (err) {
+      console.warn("[Asterisk Kanban] Failed to load tasks:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadTasks();
+  }, [isShowing]);
+
+  // Instant column move handler with optimistic local state
+  const handleMoveStatus = async (task: KanbanTaskItem, targetStatus: TaskStatus, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (task.status === targetStatus) return;
+
+    // Optimistic UI update
+    setTasks((prev) =>
+      prev.map((t) => (t.id === task.id ? { ...t, status: targetStatus } : t))
+    );
+
+    try {
+      await api.api.tasks({ id: task.id }).status.patch({
+        status: targetStatus,
+        comment: `Card moved from ${task.status} to ${targetStatus} via Kanban quick-shift`,
+      });
+    } catch (err: any) {
+      console.warn("[Asterisk] Failed to persist task status change:", err);
+      loadTasks(); // rollback on error
+    }
+  };
+
+  const getPreviousStatus = (current: TaskStatus): TaskStatus | null => {
+    switch (current) {
+      case "IN_PROGRESS": return "TODO";
+      case "REVIEW_QA": return "IN_PROGRESS";
+      case "COMPLETE": return "REVIEW_QA";
+      default: return null;
+    }
+  };
+
+  const getNextStatus = (current: TaskStatus): TaskStatus | null => {
+    switch (current) {
+      case "TODO": return "IN_PROGRESS";
+      case "IN_PROGRESS": return "REVIEW_QA";
+      case "REVIEW_QA": return "COMPLETE";
+      default: return null;
+    }
+  };
+
+  const getModuleBadge = (moduleTag: TaskModuleTag) => {
+    switch (moduleTag) {
+      case "PAYROLL":
+        return "bg-emerald-500/10 text-emerald-600 border-emerald-500/20";
+      case "SECURITY":
+        return "bg-rose-500/10 text-rose-600 border-rose-500/20";
+      case "ATTENDANCE":
+        return "bg-sky-500/10 text-sky-600 border-sky-500/20";
+      case "CLAIM":
+        return "bg-amber-500/10 text-amber-600 border-amber-500/20";
+      case "DEV":
+        return "bg-indigo-500/10 text-indigo-600 border-indigo-500/20";
+      default:
+        return "bg-[#FF6C22]/10 text-[#FF6C22] border-[#FF6C22]/20";
+    }
+  };
+
+  // Filter tasks
+  const filteredTasks = tasks.filter((t) => {
+    const matchesSearch =
+      t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (t.description && t.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (t.clientName && t.clientName.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (t.clientCode && t.clientCode.toLowerCase().includes(searchQuery.toLowerCase()));
+
+    const matchesClient = selectedClientFilter === "ALL" || t.clientId === selectedClientFilter || t.clientCode === selectedClientFilter;
+    const matchesModule = selectedModuleFilter === "ALL" || t.moduleTag === selectedModuleFilter;
+
+    return matchesSearch && matchesClient && matchesModule;
+  });
+
+  // Unique clients for dropdown
+  const uniqueClients = Array.from(
+    new Map(
+      tasks
+        .filter((t) => t.clientId)
+        .map((t) => [t.clientId, { id: t.clientId, code: t.clientCode || "", name: isShowing && t.clientShowingAlias ? t.clientShowingAlias : t.clientName || "" }])
+    ).values()
+  );
+
   return (
-    <div className="grid grid-cols-4 gap-4 items-start select-none">
-      {/* ======================================================== */}
-      {/* COLUMN 1: TO DO (12) */}
-      {/* ======================================================== */}
-      <div className="space-y-3">
-        <div className="flex items-center gap-1.5 px-1">
-          <span className="font-bold text-sm text-[#111827]">To Do</span>
-          <span className="text-gray-500 text-sm">(12)</span>
+    <div className="space-y-5 animate-in fade-in duration-300">
+      {/* 1. Header & Filter Bar */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-black/5 shadow-xs">
+        {/* Search */}
+        <div className="relative flex-1 max-w-sm">
+          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#25272D]/40" />
+          <input
+            type="text"
+            placeholder="Search delivery tasks by title or client..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-9 pr-4 py-2 bg-black/[0.03] rounded-xl text-xs text-[#18191E] placeholder:text-[#25272D]/40 focus:outline-none focus:ring-1 focus:ring-[#FF6C22]"
+          />
         </div>
 
-        {/* Card 1.1 */}
-        <div className="bg-white rounded-2xl border border-gray-200 p-3.5 shadow-xs hover:shadow-md transition space-y-2.5">
-          <div className="flex items-center gap-2">
-            <span className="bg-[#FDE8E4] text-[#E15B46] text-[11px] font-semibold px-2.5 py-0.5 rounded-md">Dribbble</span>
-            <span className="bg-[#FEF0E6] text-[#D97706] text-[11px] font-semibold px-2.5 py-0.5 rounded-md">Design</span>
+        {/* Filters & Actions */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
+          {/* Module Filter Pills */}
+          <div className="flex items-center gap-1 bg-black/[0.03] p-1 rounded-xl text-[11px] font-semibold">
+            {["ALL", "PAYROLL", "SECURITY", "ATTENDANCE", "DEV"].map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setSelectedModuleFilter(m)}
+                className={`px-2.5 py-1 rounded-lg transition-colors ${
+                  selectedModuleFilter === m
+                    ? "bg-white text-[#18191E] shadow-xs"
+                    : "text-[#25272D]/50 hover:text-[#18191E]"
+                }`}
+              >
+                {m}
+              </button>
+            ))}
           </div>
-          <div>
-            <h4 className="font-bold text-xs text-gray-900 leading-tight">Project Management Web App</h4>
-            <p className="text-[11px] text-gray-500 mt-1 line-clamp-2">Make a design for a web application for organizing the workspace of an IT company</p>
-          </div>
-          <div className="flex items-center justify-between pt-1">
-            <div className="flex items-center gap-1 bg-white border border-gray-200 px-2 py-0.5 rounded-md text-[10px] font-medium text-gray-600">
-              <Calendar className="w-3 h-3 text-gray-400" />
-              <span>30 Jan</span>
-            </div>
-            <div className="flex -space-x-1.5 overflow-hidden">
-              <div className="w-5 h-5 rounded-full bg-blue-500 text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-white">ZM</div>
-              <div className="w-5 h-5 rounded-full bg-pink-500 text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-white">RY</div>
-              <div className="w-5 h-5 rounded-full bg-[#FF7A29] text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-white">+3</div>
-            </div>
-            <div className="flex items-center gap-2 text-gray-400 text-[11px]">
-              <span className="flex items-center gap-0.5"><MessageSquare className="w-3 h-3" /> 2</span>
-              <span className="flex items-center gap-0.5"><Paperclip className="w-3 h-3" /> 1</span>
-            </div>
-          </div>
-        </div>
 
-        {/* Card 1.2 */}
-        <div className="bg-white rounded-2xl border border-gray-200 p-3.5 shadow-xs hover:shadow-md transition space-y-2.5">
-          <div className="flex items-center gap-2">
-            <span className="bg-[#E0F2FE] text-[#0284C7] text-[11px] font-semibold px-2.5 py-0.5 rounded-md">Behance</span>
-            <span className="bg-[#FEF0E6] text-[#D97706] text-[11px] font-semibold px-2.5 py-0.5 rounded-md">Design</span>
-          </div>
-          <div>
-            <h4 className="font-bold text-xs text-gray-900 leading-tight">Neobank App Case</h4>
-            <p className="text-[11px] text-gray-500 mt-1 line-clamp-3">It should include wireframes, user flows, and visual design elements demonstrating modern banking</p>
-          </div>
-          <div className="flex items-center justify-between pt-1">
-            <div className="flex items-center gap-1 bg-white border border-gray-200 px-2 py-0.5 rounded-md text-[10px] font-medium text-gray-600">
-              <Calendar className="w-3 h-3 text-gray-400" />
-              <span>5 Feb</span>
-            </div>
-            <div className="flex -space-x-1.5 overflow-hidden">
-              <div className="w-5 h-5 rounded-full bg-emerald-500 text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-white">IB</div>
-              <div className="w-5 h-5 rounded-full bg-purple-500 text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-white">VD</div>
-            </div>
-            <div className="flex items-center gap-2 text-gray-400 text-[11px]">
-              <span className="flex items-center gap-0.5"><MessageSquare className="w-3 h-3" /> 8</span>
-              <span className="flex items-center gap-0.5"><Paperclip className="w-3 h-3" /> 3</span>
-            </div>
-          </div>
-        </div>
+          {/* Client Filter */}
+          {uniqueClients.length > 0 && (
+            <select
+              value={selectedClientFilter}
+              onChange={(e) => setSelectedClientFilter(e.target.value)}
+              className="bg-black/[0.03] text-xs font-medium text-[#18191E] rounded-xl px-3 py-2 focus:outline-none"
+            >
+              <option value="ALL">All Clients</option>
+              {uniqueClients.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          )}
 
-        {/* Card 1.3 (With Mini Wireframe Box) */}
-        <div className="bg-white rounded-2xl border border-gray-200 p-3.5 shadow-xs hover:shadow-md transition space-y-2.5">
-          <div className="flex items-center gap-2">
-            <span className="bg-[#FEF0E6] text-[#D97706] text-[11px] font-semibold px-2.5 py-0.5 rounded-md">Design</span>
-            <span className="bg-[#E0F7F4] text-[#0D9488] text-[11px] font-semibold px-2.5 py-0.5 rounded-md">Dev</span>
-          </div>
-          <div>
-            <h4 className="font-bold text-xs text-gray-900 leading-tight">Design Agency Website</h4>
-            <p className="text-[11px] text-gray-500 mt-1">Responsive performance across devices.</p>
-          </div>
-          {/* Wireframe Mockup Preview */}
-          <div className="bg-[#111827] rounded-xl p-2.5 space-y-1.5">
-            <div className="flex gap-1">
-              <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
-              <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-            </div>
-            <div className="flex gap-1.5">
-              <div className="w-2/3 bg-[#1F2937] rounded-md h-8 p-1 flex flex-col justify-between">
-                <div className="w-8 h-1 bg-[#FF7A29] rounded" />
-                <div className="w-16 h-1 bg-gray-600 rounded" />
-              </div>
-              <div className="w-1/3 bg-[#374151] rounded-md h-8" />
-            </div>
-          </div>
-          <div className="flex items-center justify-between pt-1">
-            <div className="flex items-center gap-1 bg-white border border-gray-200 px-2 py-0.5 rounded-md text-[10px] font-medium text-gray-600">
-              <Calendar className="w-3 h-3 text-gray-400" />
-              <span>14 Feb</span>
-            </div>
-            <div className="flex -space-x-1.5 overflow-hidden">
-              <div className="w-5 h-5 rounded-full bg-orange-500 text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-white">KM</div>
-              <div className="w-5 h-5 rounded-full bg-blue-500 text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-white">ZM</div>
-            </div>
-            <span className="flex items-center gap-0.5 text-gray-400 text-[11px]"><MessageSquare className="w-3 h-3" /> 4</span>
-          </div>
+          <button
+            type="button"
+            onClick={loadTasks}
+            title="Refresh Kanban"
+            className="p-2 rounded-xl bg-black/[0.03] hover:bg-black/[0.06] text-[#25272D]/60 hover:text-[#18191E] transition-colors"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? "animate-spin text-[#FF6C22]" : ""}`} />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setCreateDefaultStatus("TODO");
+              setIsCreateModalOpen(true);
+            }}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#FF6C22] hover:bg-[#FF6C22]/90 text-white text-xs font-bold transition-all shadow-md shadow-[#FF6C22]/20 shrink-0"
+          >
+            <Plus className="w-4 h-4" />
+            <span>New Task</span>
+          </button>
         </div>
       </div>
 
-      {/* ======================================================== */}
-      {/* COLUMN 2: IN PROGRESS (2) */}
-      {/* ======================================================== */}
-      <div className="space-y-3">
-        <div className="flex items-center gap-1.5 px-1">
-          <span className="font-bold text-sm text-[#111827]">In Progress</span>
-          <span className="text-gray-500 text-sm">(2)</span>
-        </div>
-
-        {/* Card 2.1 */}
-        <div className="bg-white rounded-2xl border border-gray-200 p-3.5 shadow-xs hover:shadow-md transition space-y-2.5">
+      {/* 2. Showing Mode Warning (if active) */}
+      {isShowing && (
+        <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-900 text-xs flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="bg-[#FDE8E4] text-[#E15B46] text-[11px] font-semibold px-2.5 py-0.5 rounded-md">Dribbble</span>
-            <span className="bg-[#FEF0E6] text-[#D97706] text-[11px] font-semibold px-2.5 py-0.5 rounded-md">Design</span>
+            <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0" />
+            <span><strong>Showing Mode Active:</strong> Client company names on all Kanban cards are masked with aliases.</span>
           </div>
-          <div>
-            <h4 className="font-bold text-xs text-gray-900 leading-tight">Speaking App</h4>
-            <p className="text-[11px] text-gray-500 mt-1 line-clamp-2">Create mobile app for language exchange to help users practice.</p>
-          </div>
-          <div className="flex items-center justify-between pt-1">
-            <div className="flex items-center gap-1 bg-white border border-gray-200 px-2 py-0.5 rounded-md text-[10px] font-medium text-gray-600">
-              <Calendar className="w-3 h-3 text-gray-400" />
-              <span>30 Jan</span>
-            </div>
-            <div className="flex -space-x-1.5 overflow-hidden">
-              <div className="w-5 h-5 rounded-full bg-blue-500 text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-white">ZM</div>
-              <div className="w-5 h-5 rounded-full bg-pink-500 text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-white">RY</div>
-            </div>
-            <div className="flex items-center gap-2 text-gray-400 text-[11px]">
-              <span className="flex items-center gap-0.5"><MessageSquare className="w-3 h-3" /> 6</span>
-              <span className="flex items-center gap-0.5"><Paperclip className="w-3 h-3" /> 2</span>
-            </div>
-          </div>
+          <span className="font-mono text-[10px] bg-amber-200/60 px-2 py-0.5 rounded font-bold">
+            Ctrl+Shift+S
+          </span>
         </div>
+      )}
 
-        {/* ACTIVE DRAG STATE: Placeholder Slot + Elevated Hover Card */}
-        <div className="relative">
-          {/* Dashed slot underneath */}
-          <div className="h-44 rounded-2xl border-2 border-dashed border-[#CBD5E1] bg-[#FAFAFA]" />
+      {/* 3. The 4-Column Kanban Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-start select-none">
+        {COLUMNS.map((col) => {
+          const colTasks = filteredTasks.filter((t) => t.status === col.id);
 
-          {/* Elevated hovering dragged card */}
-          <div className="absolute top-3 left-3 right--2 bg-white rounded-2xl border border-gray-200 p-3.5 shadow-2xl transition space-y-2.5 rotate-[0.5deg]">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="bg-[#E0F7F4] text-[#0D9488] text-[11px] font-semibold px-2.5 py-0.5 rounded-md">Dev</span>
-                <span className="bg-[#FEF0E6] text-[#D97706] text-[11px] font-semibold px-2.5 py-0.5 rounded-md">Design</span>
+          return (
+            <div key={col.id} className="space-y-3 bg-[#F8F9FA]/80 p-3 rounded-2xl border border-black/[0.04] min-h-[520px] flex flex-col">
+              {/* Column Header */}
+              <div className="flex items-center justify-between px-1.5 pt-1">
+                <div className="flex items-center gap-2">
+                  <div className={`w-2 h-2 rounded-full ${col.dotColor}`} />
+                  <span className={`font-bold text-xs tracking-tight uppercase ${col.headerColor}`}>
+                    {col.label}
+                  </span>
+                  <span className="text-xs font-mono text-[#25272D]/40 font-semibold">
+                    ({colTasks.length})
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCreateDefaultStatus(col.id);
+                    setIsCreateModalOpen(true);
+                  }}
+                  title={`Add Task to ${col.label}`}
+                  className="p-1 rounded-lg hover:bg-black/5 text-[#25272D]/40 hover:text-[#18191E] transition-colors"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                </button>
               </div>
-              <Move className="w-3.5 h-3.5 text-gray-400" />
+
+              {/* Tasks List Container */}
+              <div className="space-y-2.5 flex-1 overflow-y-auto max-h-[700px] pr-0.5">
+                {colTasks.length === 0 ? (
+                  <div className="py-12 border border-dashed border-black/10 rounded-2xl text-center p-4 text-[11px] text-[#25272D]/40 space-y-1">
+                    <p className="font-medium">No tasks in this stage</p>
+                    <p className="text-[10px]">Click + to add backlog ticket</p>
+                  </div>
+                ) : (
+                  colTasks.map((task) => {
+                    const prevStatus = getPreviousStatus(task.status);
+                    const nextStatus = getNextStatus(task.status);
+
+                    return (
+                      <div
+                        key={task.id}
+                        onClick={() => setSelectedTaskId(task.id)}
+                        className="bg-white rounded-2xl border border-black/5 p-3.5 shadow-xs hover:shadow-md transition-all space-y-2.5 cursor-pointer group hover:border-[#FF6C22]/30 relative"
+                      >
+                        {/* Top Badges: Client + Module + Showing Feedback Badge */}
+                        <div className="flex items-center justify-between gap-1">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-black/5 text-[#25272D]/70">
+                              {task.clientCode || "CLIENT"}
+                            </span>
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${getModuleBadge(task.moduleTag)}`}>
+                              {task.moduleTag}
+                            </span>
+                          </div>
+
+                          {task.feedbackId && (
+                            <span className="px-1.5 py-0.5 rounded-full bg-[#FF6C22]/10 text-[#FF6C22] border border-[#FF6C22]/20 text-[9px] font-bold flex items-center gap-0.5">
+                              <Zap className="w-2.5 h-2.5 fill-current" />
+                              <span>Showing</span>
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Title & Description */}
+                        <div>
+                          <h3 className="font-bold text-xs text-[#18191E] leading-snug group-hover:text-[#FF6C22] transition-colors">
+                            {task.title}
+                          </h3>
+                          {task.description && (
+                            <p className="text-[11px] text-[#25272D]/60 mt-1 line-clamp-2 leading-relaxed">
+                              {task.description}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Card Meta Row: Due Date, Assignee, Activities, & Move Controls */}
+                        <div className="flex items-center justify-between pt-2 border-t border-black/5 text-xs">
+                          {/* Left: Date */}
+                          <div className="flex items-center gap-1 text-[10px] font-mono text-[#25272D]/50">
+                            <Calendar className="w-3 h-3 text-[#25272D]/40" />
+                            <span>{task.dueDate ? new Date(task.dueDate).toLocaleDateString([], { month: 'short', day: 'numeric' }) : "Flexible"}</span>
+                          </div>
+
+                          {/* Middle: Comments / Activities count */}
+                          <div className="flex items-center gap-1 text-[10px] text-[#25272D]/40">
+                            <MessageSquare className="w-3 h-3" />
+                            <span>{task.activitiesCount || 0}</span>
+                          </div>
+
+                          {/* Right: Quick Move Buttons */}
+                          <div className="flex items-center gap-1">
+                            {prevStatus && (
+                              <button
+                                type="button"
+                                onClick={(e) => handleMoveStatus(task, prevStatus, e)}
+                                title={`Move back to ${prevStatus}`}
+                                className="p-1 rounded-md bg-black/[0.03] hover:bg-black/10 text-[#25272D]/50 hover:text-[#18191E] transition-colors"
+                              >
+                                <ArrowLeft className="w-3 h-3" />
+                              </button>
+                            )}
+
+                            {nextStatus && (
+                              <button
+                                type="button"
+                                onClick={(e) => handleMoveStatus(task, nextStatus, e)}
+                                title={`Advance to ${nextStatus}`}
+                                className="p-1 rounded-md bg-[#FF6C22]/10 hover:bg-[#FF6C22] text-[#FF6C22] hover:text-white transition-colors"
+                              >
+                                <ArrowRight className="w-3 h-3" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
             </div>
-            <div>
-              <h4 className="font-bold text-xs text-gray-900 leading-tight">Online Catalog Development</h4>
-              <p className="text-[11px] text-gray-600 mt-1 line-clamp-3">Develop employee directory index supporting 50,000+ employees with zero caching lag.</p>
-            </div>
-            <div className="flex items-center justify-between pt-1">
-              <div className="flex items-center gap-1 bg-white border border-gray-200 px-2 py-0.5 rounded-md text-[10px] font-medium text-gray-600">
-                <Calendar className="w-3 h-3 text-gray-400" />
-                <span>3 Feb</span>
-              </div>
-              <div className="flex -space-x-1.5 overflow-hidden">
-                <div className="w-5 h-5 rounded-full bg-blue-500 text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-white">ZM</div>
-                <div className="w-5 h-5 rounded-full bg-pink-500 text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-white">RY</div>
-                <div className="w-5 h-5 rounded-full bg-[#FF7A29] text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-white">+3</div>
-              </div>
-              <div className="flex items-center gap-2 text-gray-400 text-[11px]">
-                <span className="flex items-center gap-0.5"><MessageSquare className="w-3 h-3" /> 4</span>
-                <span className="flex items-center gap-0.5"><Paperclip className="w-3 h-3" /> 1</span>
-              </div>
-            </div>
-          </div>
-        </div>
+          );
+        })}
       </div>
 
-      {/* ======================================================== */}
-      {/* COLUMN 3: REVIEW (3) */}
-      {/* ======================================================== */}
-      <div className="space-y-3">
-        <div className="flex items-center gap-1.5 px-1">
-          <span className="font-bold text-sm text-[#111827]">Review</span>
-          <span className="text-gray-500 text-sm">(3)</span>
-        </div>
+      {/* 4. Modals */}
+      <CreateTaskModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSuccess={loadTasks}
+        isShowing={isShowing}
+        defaultStatus={createDefaultStatus}
+      />
 
-        {/* Card 3.1 */}
-        <div className="bg-white rounded-2xl border border-gray-200 p-3.5 shadow-xs hover:shadow-md transition space-y-2.5">
-          <div className="flex items-center gap-2">
-            <span className="bg-[#F3E8FF] text-[#7E22CE] text-[11px] font-semibold px-2.5 py-0.5 rounded-md">Research</span>
-            <span className="bg-[#FEF0E6] text-[#D97706] text-[11px] font-semibold px-2.5 py-0.5 rounded-md">Design</span>
-          </div>
-          <div>
-            <h4 className="font-bold text-xs text-gray-900 leading-tight">Administrator Panel Interface</h4>
-            <p className="text-[11px] text-gray-500 mt-1 line-clamp-2">Manage user rights across multi-tenant environments.</p>
-          </div>
-          <div className="flex items-center justify-between pt-1">
-            <div className="flex items-center gap-1 bg-white border border-gray-200 px-2 py-0.5 rounded-md text-[10px] font-medium text-gray-600">
-              <Calendar className="w-3 h-3 text-gray-400" />
-              <span>24 Jan</span>
-            </div>
-            <div className="flex -space-x-1.5 overflow-hidden">
-              <div className="w-5 h-5 rounded-full bg-emerald-500 text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-white">IB</div>
-              <div className="w-5 h-5 rounded-full bg-purple-500 text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-white">VD</div>
-              <div className="w-5 h-5 rounded-full bg-[#FF7A29] text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-white">+2</div>
-            </div>
-            <div className="flex items-center gap-2 text-gray-400 text-[11px]">
-              <span className="flex items-center gap-0.5"><MessageSquare className="w-3 h-3" /> 3</span>
-              <span className="flex items-center gap-0.5"><Paperclip className="w-3 h-3" /> 1</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Card 3.2 (With Triple Phone Mockup Preview!) */}
-        <div className="bg-white rounded-2xl border border-gray-200 p-3.5 shadow-xs hover:shadow-md transition space-y-2.5">
-          <div className="flex items-center gap-2">
-            <span className="bg-[#FEF0E6] text-[#D97706] text-[11px] font-semibold px-2.5 py-0.5 rounded-md">Design</span>
-          </div>
-          <div>
-            <h4 className="font-bold text-xs text-gray-900 leading-tight">Fintech App</h4>
-            <p className="text-[11px] text-gray-500 mt-1 line-clamp-2">Intuitive visual design simplifying complex financial transactions.</p>
-          </div>
-          {/* Triple Mobile Screens Mockup */}
-          <div className="bg-[#141519] rounded-xl p-2 flex gap-1.5 justify-between">
-            <div className="w-1/3 bg-[#1E2026] border border-[#2E313B] rounded-lg p-1.5 h-16 flex flex-col justify-between">
-              <div className="w-5 h-1 bg-[#FF7A29] rounded" />
-              <div className="w-full h-3 bg-[#282B34] rounded" />
-              <div className="w-full h-1 bg-[#FF6C22] rounded" />
-            </div>
-            <div className="w-1/3 bg-[#1E2026] border border-[#2E313B] rounded-lg p-1.5 h-16 flex flex-col justify-between">
-              <div className="w-4 h-1 bg-blue-500 rounded" />
-              <div className="w-full h-2.5 bg-[#282B34] rounded" />
-              <div className="w-full h-4 bg-[#282B34] rounded" />
-            </div>
-            <div className="w-1/3 bg-[#1E2026] border border-[#2E313B] rounded-lg p-1.5 h-16 flex flex-col justify-between">
-              <div className="w-5 h-1 bg-emerald-500 rounded" />
-              <div className="w-full h-2 bg-[#282B34] rounded" />
-              <div className="w-full h-2 bg-[#282B34] rounded" />
-            </div>
-          </div>
-          <div className="flex items-center justify-between pt-1">
-            <div className="flex items-center gap-1 bg-white border border-gray-200 px-2 py-0.5 rounded-md text-[10px] font-medium text-gray-600">
-              <Calendar className="w-3 h-3 text-gray-400" />
-              <span>23 Jan</span>
-            </div>
-            <div className="flex -space-x-1.5 overflow-hidden">
-              <div className="w-5 h-5 rounded-full bg-blue-500 text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-white">ZM</div>
-              <div className="w-5 h-5 rounded-full bg-pink-500 text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-white">RY</div>
-              <div className="w-5 h-5 rounded-full bg-emerald-500 text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-white">IB</div>
-            </div>
-            <div className="flex items-center gap-2 text-gray-400 text-[11px]">
-              <span className="flex items-center gap-0.5"><MessageSquare className="w-3 h-3" /> 5</span>
-              <span className="flex items-center gap-0.5"><Paperclip className="w-3 h-3" /> 3</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ======================================================== */}
-      {/* COLUMN 4: COMPLETE (26) */}
-      {/* ======================================================== */}
-      <div className="space-y-3">
-        <div className="flex items-center gap-1.5 px-1">
-          <span className="font-bold text-sm text-[#111827]">Complete</span>
-          <span className="text-gray-500 text-sm">(26)</span>
-        </div>
-
-        {/* Card 4.1 */}
-        <div className="bg-white rounded-2xl border border-gray-200 p-3.5 shadow-xs hover:shadow-md transition space-y-2.5">
-          <div className="flex items-center gap-2">
-            <span className="bg-[#FDE8E4] text-[#E15B46] text-[11px] font-semibold px-2.5 py-0.5 rounded-md">Dribbble</span>
-            <span className="bg-[#FEF0E6] text-[#D97706] text-[11px] font-semibold px-2.5 py-0.5 rounded-md">Design</span>
-          </div>
-          <div>
-            <h4 className="font-bold text-xs text-gray-900 leading-tight">Finance Manager</h4>
-            <p className="text-[11px] text-gray-500 mt-1 line-clamp-2">Workspace organization dashboard for IT companies.</p>
-          </div>
-          <div className="flex items-center justify-between pt-1">
-            <div className="flex items-center gap-1 bg-white border border-gray-200 px-2 py-0.5 rounded-md text-[10px] font-medium text-gray-600">
-              <Calendar className="w-3 h-3 text-gray-400" />
-              <span>12 Jan</span>
-            </div>
-            <div className="w-5 h-5 rounded-full bg-blue-500 text-white text-[9px] font-bold flex items-center justify-center">ZM</div>
-          </div>
-        </div>
-
-        {/* Card 4.2 */}
-        <div className="bg-white rounded-2xl border border-gray-200 p-3.5 shadow-xs hover:shadow-md transition space-y-2.5">
-          <div className="flex items-center gap-2">
-            <span className="bg-[#F3E8FF] text-[#7E22CE] text-[11px] font-semibold px-2.5 py-0.5 rounded-md">Research</span>
-            <span className="bg-[#FEF0E6] text-[#D97706] text-[11px] font-semibold px-2.5 py-0.5 rounded-md">Design</span>
-          </div>
-          <div>
-            <h4 className="font-bold text-xs text-gray-900 leading-tight">Fashion Website</h4>
-            <p className="text-[11px] text-gray-500 mt-1 line-clamp-2">Luxurious editorial craftsmanship and micro-interactions.</p>
-          </div>
-          <div className="flex items-center justify-between pt-1">
-            <div className="flex items-center gap-1 bg-white border border-gray-200 px-2 py-0.5 rounded-md text-[10px] font-medium text-gray-600">
-              <Calendar className="w-3 h-3 text-gray-400" />
-              <span>9 Jan</span>
-            </div>
-            <div className="flex -space-x-1.5 overflow-hidden">
-              <div className="w-5 h-5 rounded-full bg-emerald-500 text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-white">IB</div>
-              <div className="w-5 h-5 rounded-full bg-purple-500 text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-white">VD</div>
-              <div className="w-5 h-5 rounded-full bg-[#FF7A29] text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-white">+2</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Card 4.3 */}
-        <div className="bg-white rounded-2xl border border-gray-200 p-3.5 shadow-xs hover:shadow-md transition space-y-2.5">
-          <div className="flex items-center gap-2">
-            <span className="bg-[#FDE8E4] text-[#E15B46] text-[11px] font-semibold px-2.5 py-0.5 rounded-md">Dribbble</span>
-            <span className="bg-[#FEF0E6] text-[#D97706] text-[11px] font-semibold px-2.5 py-0.5 rounded-md">Design</span>
-          </div>
-          <div>
-            <h4 className="font-bold text-xs text-gray-900 leading-tight">Note-Taking App</h4>
-            <p className="text-[11px] text-gray-500 mt-1 line-clamp-2">High-velocity interface for rapid idea capture.</p>
-          </div>
-          <div className="flex items-center justify-between pt-1">
-            <div className="flex items-center gap-1 bg-white border border-gray-200 px-2 py-0.5 rounded-md text-[10px] font-medium text-gray-600">
-              <Calendar className="w-3 h-3 text-gray-400" />
-              <span>4 Jan</span>
-            </div>
-            <div className="w-5 h-5 rounded-full bg-pink-500 text-white text-[9px] font-bold flex items-center justify-center">RY</div>
-          </div>
-        </div>
-      </div>
+      <TaskDetailModal
+        isOpen={!!selectedTaskId}
+        onClose={() => setSelectedTaskId(null)}
+        taskId={selectedTaskId}
+        isShowing={isShowing}
+        onTaskUpdated={loadTasks}
+      />
     </div>
   );
 }

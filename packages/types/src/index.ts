@@ -231,6 +231,29 @@ export interface KanbanTask {
   updatedAt: Date;
 }
 
+export interface TaskActivity {
+  id: string;
+  taskId: string;
+  userId: string;
+  userFullName?: string;
+  action: string;
+  previousValue?: string | null;
+  newValue?: string | null;
+  comment?: string | null;
+  createdAt: Date;
+}
+
+export interface KanbanTaskWithContext extends KanbanTask {
+  clientName?: string;
+  clientCode?: string;
+  clientShowingAlias?: string;
+  assignedToName?: string;
+  assignedToAvatar?: string;
+  sourceFeedbackCategory?: FeedbackCategory;
+  sourceFeedbackSeverity?: FeedbackSeverity;
+  activitiesCount?: number;
+}
+
 // 7. Showing Mode State Contract
 export interface ShowingState {
   isActive: boolean;
