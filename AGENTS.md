@@ -47,6 +47,11 @@ Setiap kali prompt pengguna masuk, AI wajib menganalisis domain pekerjaan dan me
    - **DILARANG menjalankan background dev server (`moon run :dev`, `bun dev`, `npm start`) secara otonom**.
    - Server proses dikendalikan sepenuhnya oleh pengguna di terminalnya sendiri. Agent hanya membuat kode, memverifikasi linter/typecheck, dan mempersiapkan build.
 
+5. **Otoritas Git Branch & Merge (Dev Only, Zero Direct Merge to Main)**:
+   - **DILARANG KERAS** melakukan `git merge` ke `main` atau `git push origin main`.
+   - Agent **HANYA diizinkan commit dan push ke branch `dev`** (atau `feature/**`).
+   - Branch `main` adalah production branch sakral: penggabungan kode hanya boleh dilakukan oleh **Rey Cannavaro** melalui mekanisme Pull Request (PR) dan merge manual di GitHub.
+
 
 <!-- BEGIN AWS Agent Toolkit rules -->
 # AWS Guidance for the new AWS experience
