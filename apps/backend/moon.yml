@@ -1,0 +1,43 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+stack: 'backend'
+language: 'typescript'
+
+tasks:
+  dev:
+    command: 'bun run dev'
+    preset: 'server'
+
+  build:
+    command: 'bun run build'
+    inputs:
+      - 'src/**/*'
+      - 'tsconfig.json'
+    outputs:
+      - 'dist'
+
+  typecheck:
+    command: 'bun run typecheck'
+    inputs:
+      - 'src/**/*'
+      - 'tsconfig.json'
+
+  db-generate:
+    command: 'bun run db:generate'
+    options:
+      cache: false
+
+  db-migrate:
+    command: 'bun run db:migrate'
+    options:
+      cache: false
+
+  db-push:
+    command: 'bun run db:push'
+    options:
+      cache: false
+
+  db-seed:
+    command: 'bun run db:seed'
+    options:
+      cache: false
