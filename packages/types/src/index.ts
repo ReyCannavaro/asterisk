@@ -134,7 +134,13 @@ export interface Environment {
 }
 
 // 4. Credential Vault
-export type CredentialType = "POSTGRES_PASSWORD" | "SSH_PRIVATE_KEY" | "API_MASTER_TOKEN" | "GENERATOR_SECRET";
+export type CredentialType = 
+  | "POSTGRES_PASSWORD" 
+  | "SSH_PRIVATE_KEY" 
+  | "API_MASTER_TOKEN" 
+  | "GENERATOR_SECRET"
+  | "ENV_SECRET"
+  | "AWS_ACCESS_KEY";
 
 export interface Credential {
   id: string;
@@ -146,6 +152,27 @@ export interface Credential {
   lastRotatedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface CredentialWithContext extends Credential {
+  environmentName?: string;
+  clientId?: string;
+  clientName?: string;
+  clientCode?: string;
+  clientShowingAlias?: string;
+}
+
+export interface AuditLog {
+  id: string;
+  userId: string | null;
+  action: string;
+  resourceType: string;
+  resourceId: string | null;
+  ipAddress: string | null;
+  userAgent: string | null;
+  wasShowingModeActive: boolean;
+  metadata?: any;
+  createdAt: Date;
 }
 
 // 5. Showing Sessions & Feedback Pipeline

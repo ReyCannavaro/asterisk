@@ -3,6 +3,7 @@ import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
 import { KanbanBoard } from "./KanbanBoard";
 import { ClientsManager } from "./ClientsManager";
+import { VaultManager } from "./VaultManager";
 import { CreateClientModal } from "./CreateClientModal";
 import { useShowingMode } from "../lib/showing-store";
 import { api } from "../lib/eden";
@@ -70,6 +71,8 @@ export function Dashboard() {
               initialSelectedClientId={selectedClientId}
               onSelectClient={(cId) => setSelectedClientId(cId)}
             />
+          ) : activeView === "vault" ? (
+            <VaultManager isShowing={isShowing} />
           ) : (
             <KanbanBoard isShowing={isShowing} />
           )}
