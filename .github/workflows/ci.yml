@@ -1,0 +1,35 @@
+name: Asterisk Continuous Integration
+
+on:
+  push:
+    branches: [ "dev", "feature/**" ]
+  pull_request:
+    branches: [ "main", "dev" ]
+
+jobs:
+  validate:
+    name: Monorepo Typecheck & Build Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Bun Runtime
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install Monorepo Dependencies
+        run: bun install
+
+      - name: Install Moonrepo CLI
+        run: npm install -g @moonrepo/cli
+
+      - name: Run Typecheck Across Monorepo
+        run: moon run :typecheck
+
+      - name: Run Build Across Monorepo
+        run: moon run :build
